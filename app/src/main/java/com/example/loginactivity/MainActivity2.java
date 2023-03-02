@@ -43,7 +43,8 @@ public class MainActivity2 extends AppCompatActivity {
                 String passwordInput = passwordEditText.getText().toString();
 
                 if(!nameInput.isEmpty() && !emailInput.isEmpty() && !passwordInput.isEmpty()){
-                    addNewUser(nameInput, emailInput, passwordInput);
+                    RegisterUser registerUser = new RegisterUser(nameInput, emailInput, passwordInput);
+                    new Thread(registerUser).start();
                 }
                 else{
                     Toast.makeText(MainActivity2.this, "Please check for empty fields!", Toast.LENGTH_SHORT).show();
@@ -59,25 +60,36 @@ public class MainActivity2 extends AppCompatActivity {
         });
     }
 
-    private void addNewUser(String nameInput, String emailInput, String passwordInput) {
-        HashMap<String, Object> user = new HashMap<>();
-        user.put("name", nameInput);
-        user.put("email", emailInput);
-        user.put("password", passwordInput);
+    class RegisterUser implements Runnable {
+        String nameInput, emailInput, passwordInput;
 
-        db.collection("User")
-                .add(user)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference){
-                        Toast.makeText(MainActivity2.this, "Successfully created account!", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(MainActivity2.this, "No connection!", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        RegisterUser(String nameInput, String emailInput, String passwordInput){
+            this.nameInput = nameInput;
+            this.emailInput = emailInput;
+            this.passwordInput = passwordInput;
+        }
+
+        @Override
+        public void run(){
+            HashMap<String, Object> user = new HashMap<>();
+            user.put("name", nameInput);
+            user.put("email", emailInput);
+            user.put("password", passwordInput);
+
+            db.collection("User")
+                    .add(user)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference){
+                            Toast.makeText(MainActivity2.this, "Successfully created account!", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MainActivity2.this, "No connection!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
     }
 }

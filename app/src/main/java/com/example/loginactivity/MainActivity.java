@@ -45,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
                 String passwordInput = passwordEditText.getText().toString();
 
                 if(!emailInput.isEmpty() && !passwordInput.isEmpty()){
-                    getUserAccount(emailInput, passwordInput);
+                    GetUserAccount getUserAccount = new GetUserAccount(emailInput, passwordInput);
+                    new Thread(getUserAccount).start();
                 }
                 else{
                     Toast.makeText(MainActivity.this, "Please enter email and password!", Toast.LENGTH_SHORT).show();
@@ -66,36 +67,50 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void getUserAccount(String emailInput, String passwordInput) {
-        db.collection("User")
-                .whereEqualTo("email",emailInput)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        if (queryDocumentSnapshots.isEmpty()){
-                            Toast.makeText(MainActivity.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
-                        }
-                        else{
-                            DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
-                            String savedPassword = document.getString("password");
+    private void openMainActivity3() {
+        Intent intent = new Intent(this, MainActivity3.class);
+        startActivity(intent);
+    }
 
-                            if (passwordInput.equals(savedPassword)) {
-                                Toast.makeText(MainActivity.this, "Log in successful!", Toast.LENGTH_SHORT).show();
+    class GetUserAccount implements Runnable{
+        String emailInput, passwordInput;
+
+        GetUserAccount(String emailInput, String passwordInput){
+            this.emailInput = emailInput;
+            this.passwordInput = passwordInput;
+        }
+
+        @Override
+        public void run(){
+            db.collection("User")
+                    .whereEqualTo("email",emailInput)
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                            if (queryDocumentSnapshots.isEmpty()){
+                                Toast.makeText(MainActivity.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
                             }
-                            else { //if password is incorrect
-                                Toast.makeText(MainActivity.this, "Invalid email or password!", Toast.LENGTH_SHORT).show();
+                            else{
+                                DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
+                                String savedPassword = document.getString("password");
+
+                                if (passwordInput.equals(savedPassword)) {
+                                    openMainActivity3();
+                                }
+                                else { //if password is incorrect
+                                    Toast.makeText(MainActivity.this, "Invalid email or password!", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(MainActivity.this, "No connection", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MainActivity.this, "No connection", Toast.LENGTH_SHORT).show();
+                        }
+                    });
 
-                    }
-                });
-
+        }
     }
 }
